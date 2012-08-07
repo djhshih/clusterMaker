@@ -30,7 +30,7 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-package clusterMaker.algorithms.attributeClusterers.Hopach;
+package clusterMaker.algorithms.attributeClusterers.hopach;
 
 import java.awt.GridLayout;
 import java.util.ArrayList;

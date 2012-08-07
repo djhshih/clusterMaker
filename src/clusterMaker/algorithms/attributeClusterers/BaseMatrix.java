@@ -1,4 +1,3 @@
-/* vim: set ts=2: */
 /**
  * Copyright (c) 2008 The Regents of the University of California.
  * All rights reserved.
@@ -36,6 +35,9 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
+/**
+ *  BaseMatrix is a basic numeric matrix.
+ */
 public class BaseMatrix {
 	protected int nRows;
 	protected int nColumns;
@@ -61,6 +63,61 @@ public class BaseMatrix {
 	                                                 DistanceMetric.SPEARMANS_RANK,
 	                                                 DistanceMetric.KENDALLS_TAU,
 	                                                 DistanceMetric.VALUE_IS_CORRELATION };
+	
+	/**
+	 * Package-private constructor to be implicitly called by Matrix.
+	 */
+	BaseMatrix() {}
+	
+	/**
+	 * Constructor.
+	 * @param rows number of rows
+	 * @param cols number of columns
+	 */
+	public BaseMatrix(int rows, int cols) {
+		init(rows, cols);
+	}
+	
+	/**
+	 * Construct BaseMatrix from existing data array. Elements are populated in row-major order.
+	 * @param rows number of rows (set to 0 for auto, if {@code cols} is specified)
+	 * @param cols number of columns (set to 0 for auto, if rows is specified)
+	 * @param data data array
+	 */
+	public BaseMatrix(int rows, int cols, Double data[]) {
+		// determine and check dimensions
+		if (rows == 0) {
+			rows = data.length / cols;
+		}
+		if (cols == 0) {
+			cols = data.length / rows;
+		}
+		if (rows * cols != data.length) {
+			throw new IllegalArgumentException("Data array length does not conform with specified matrix dimension");
+		}
+		
+		init(rows, cols);
+		
+		// populate matrix in row-major order
+		int k = 0;
+		for (int i = 0; i < rows; ++i) {
+			for (int j = 0; j < cols; ++j) {
+				matrix[i][j] = data[k++];
+			}
+		}
+	}
+	
+	private void init(int rows, int cols) {
+		this.nRows = rows;
+		this.nColumns = cols;
+		this.matrix = new Double[rows][cols];
+		this.colWeights = new double[cols];
+		this.rowWeights = new double[rows];
+		this.columnLabels = new String[cols];
+		this.rowLabels = new String[rows];
+		this.transpose = false;
+		setUniformWeights();
+	}
 	
 	public int nRows() { return this.nRows; }
 
@@ -213,7 +270,7 @@ public class BaseMatrix {
 				   metric.getMetric(this, this, this.getWeights(), row, column);
 				if (row != column)
 					result[column][row] = result[row][column];  // Assumes symmetrical distances
-				// System.out.println("distanceMatrix["+row+"]["+column+"] = "+result[row][column]);
+				//System.out.println("distanceMatrix["+row+"]["+column+"] = "+result[row][column]);
 			}
 		}
 		return result;
@@ -271,7 +328,6 @@ public class BaseMatrix {
 		}
 	}
 	
-	
 	private class IndexComparator implements Comparator<Integer> {
 		double[] data = null;
 		int[] intData = null;
@@ -292,8 +348,6 @@ public class BaseMatrix {
 			}
 			return 0;
 		}
-		
-		//boolean equals() { return false; };
 	}
 	
 }

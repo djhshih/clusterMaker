@@ -1,4 +1,3 @@
-/* vim: set ts=2: */
 /**
  * Copyright (c) 2008 The Regents of the University of California.
  * All rights reserved.
@@ -33,6 +32,8 @@
 package clusterMaker.algorithms.attributeClusterers;
 
 import java.lang.Math;
+
+//FIXME EUCLIDEAN is actually EUCLIDEAN_SQUARED!!!
 
 public enum DistanceMetric {
 	VALUE_IS_CORRELATION("None -- attributes are correlations"),
