@@ -383,6 +383,13 @@ public abstract class AbstractAttributeClusterAlgorithm {
 
 		String resultString =  "Created "+nClusters+" clusters with average silhouette = "+sResult.getMean();
 		logger.info(resultString);
+		
+		String s = "Clusters: ";
+		for (int i = 0; i < clusters.length; ++i) {
+			s += clusters[i] + ", ";
+		}
+		logger.info(s);
+		
 		return resultString;
 	}
 	

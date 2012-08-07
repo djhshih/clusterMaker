@@ -5,6 +5,7 @@ import java.util.TreeMap;
 
 /**
  * Clusters store clustering results.
+ * Independent of Cytoscape.
  * @author djh.shih
  *
  */

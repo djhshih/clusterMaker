@@ -9,6 +9,7 @@ import clusterMaker.algorithms.numeric.Numeric;
 
 /**
  * Hopach performs HOPACH using a Hopachable partitioner.
+ * Independent of Cytoscape.
  * @author djh.shih
  *
  */

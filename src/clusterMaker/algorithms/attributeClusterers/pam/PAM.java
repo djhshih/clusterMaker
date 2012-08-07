@@ -13,6 +13,7 @@ import clusterMaker.algorithms.attributeClusterers.hopach.types.KClusterable;
  * Partitioning Around Medoids. Cluster data elements by aiming to minimize the average
  * dissimilarity of objects to their closest selected element (medoid).
  * Data elements are indexable.
+ * Independent of Cytoscape.
  * NB   This class is an implementation of the PAM algorithm described in the course notes
  *      at <www.cs.umb.edu/cs738/pam1.pdf> (accessed 2012-07-31).
  *      There appears to be different variants of the PAM algorithm varying in details
@@ -22,6 +23,7 @@ import clusterMaker.algorithms.attributeClusterers.hopach.types.KClusterable;
  *      The cluster results from current implementation can differ from the implementation 
  *      in R's cluster::pam. (See PAMTest for details.)
  * @author djh.shih
+ * @comment
  *
  */
 public class PAM implements KClusterable {
@@ -61,6 +63,8 @@ public class PAM implements KClusterable {
 	// set of all indexed elements
 	// required since Java's HashSet cannot use native types
 	Integer[] elements;
+	
+	int maxIterations = 1000;
 	
 	public PAM(BaseMatrix data, DistanceMetric metric) {
 		this(data, metric, null, null);
@@ -239,8 +243,9 @@ public class PAM implements KClusterable {
 	 */
 	private void swapPhase() {
 		boolean notConverged = true;
+		int iterations = 0;
 		
-		while (notConverged) {
+		while (notConverged && iterations++ < maxIterations) {
 			notConverged = false;
 	
 			Iterator<Integer> medIt = medoids.iterator();

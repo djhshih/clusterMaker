@@ -69,6 +69,7 @@ import clusterMaker.algorithms.attributeClusterers.autosome.AutoSOMECluster;
 import clusterMaker.algorithms.attributeClusterers.hierarchical.HierarchicalCluster;
 import clusterMaker.algorithms.attributeClusterers.kmeans.KMeansCluster;
 import clusterMaker.algorithms.attributeClusterers.kmedoid.KMedoidCluster;
+import clusterMaker.algorithms.attributeClusterers.pam.PAMClusterer;
 import clusterMaker.algorithms.attributeClusterers.FeatureVector.FeatureVectorCluster;
 
 import clusterMaker.algorithms.networkClusterers.TransClust.TransClustCluster;
@@ -133,6 +134,7 @@ public class ClusterMaker extends CytoscapePlugin implements PropertyChangeListe
 		addClusterAlgorithm(menu, new HierarchicalCluster());
 		addClusterAlgorithm(menu, new KMeansCluster());
 		addClusterAlgorithm(menu, new KMedoidCluster());
+		addClusterAlgorithm(menu, new PAMClusterer());
 		// addClusterAlgorithm(menu, new QTCluster());
 
 		menu.addSeparator();
