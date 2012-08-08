@@ -33,6 +33,21 @@ public class Clusters {
 	}
 	
 	/**
+	 * Special constructor for building singleton clusters.
+	 * @param k number of singleton clusters
+	 */
+	public Clusters(int k) {
+		int[] t = new int[k];
+		for (int i = 0; i < k; ++i) {
+			t[i] = k;
+		}
+		this.index = t;
+		this.orderedLabels = Arrays.copyOf(t, t.length);
+		this.k = k;
+		this.cost = 0.0;
+	}
+	
+	/**
 	 * Constructor. No cluster label reassignment. No error checking.
 	 * @param assignments cluster index/labels of each element (clusters must be labeled 0 to k-1)
 	 * @param k number of clusters

@@ -31,6 +31,6 @@ public class PAMCluster extends AbstractAttributeClusterAlgorithm {
 			clusterId[i] = c.getClusterIndex(i);
 		}
 		
-		return 1;
+		return c.getNumberOfClusters();
 	}
 }

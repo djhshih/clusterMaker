@@ -198,14 +198,14 @@ public class PAMClusterer extends AbstractAttributeClusterer {
 			if (monitor != null) {
 				monitor.setStatus("Clustering attributes");
 			}
-			resultsString = "\nAttributes: " + algo.cluster(kNumber,  nIterations,  true, "PAM");
+			resultsString = "\nAttributes: " + algo.cluster(kNumber,  nIterations,  true, getShortName());
 		}
 		
 		// Cluster the nodes
 		if (monitor != null) {
 			monitor.setStatus("Clustering nodes");
 		}
-		resultsString = "\nNodes: " + algo.cluster(kNumber, nIterations, false, "PAM");
+		resultsString = "\nNodes: " + algo.cluster(kNumber, nIterations, false, getShortName());
 		if (monitor != null) {
 			monitor.setStatus(resultsString);
 		}

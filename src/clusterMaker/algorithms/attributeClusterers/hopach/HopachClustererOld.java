@@ -85,16 +85,16 @@ import clusterMaker.ui.KnnView;
  *
  * TODO: Get R source code to figure out exact algorithm
  */
-public class HopachCluster extends AbstractAttributeClusterer {
+public class HopachClustererOld extends AbstractAttributeClusterer {
 
 	String[] attributeArray = new String[1];
 
 	TaskMonitor monitor = null;
 	CyLogger logger = null;
 
-	public HopachCluster() {
+	public HopachClustererOld() {
 		super();
-		logger = CyLogger.getLogger(HopachCluster.class);
+		logger = CyLogger.getLogger(HopachClustererOld.class);
 		initializeProperties();
 	}
 
