@@ -5,9 +5,12 @@ import clusterMaker.algorithms.attributeClusterers.Clusters;
 import clusterMaker.algorithms.attributeClusterers.DistanceMatrix;
 import clusterMaker.algorithms.attributeClusterers.DistanceMetric;
 import clusterMaker.algorithms.attributeClusterers.hopach.types.Hopachable;
+import clusterMaker.algorithms.attributeClusterers.hopach.types.SplitCost;
 import clusterMaker.algorithms.attributeClusterers.hopach.types.Subsegregatable;
 import clusterMaker.algorithms.attributeClusterers.silhouette.DistanceCalculator;
 import clusterMaker.algorithms.attributeClusterers.silhouette.MSplitSilhouetteCalculator;
+import clusterMaker.algorithms.numeric.MeanSummarizer;
+import clusterMaker.algorithms.numeric.Summarizer;
 
 /**
  * A PAM partitioner that implements Hopachable.
@@ -22,6 +25,10 @@ public class HopachablePAM extends PAM implements Hopachable, Subsegregatable {
 	// maximum number of sub-partitions to consider for sub-splitting each partition
 	int maxL = 9;
 	
+	SplitCost splitCost = SplitCost.AVERAGE_SPLIT_SILHOUETTE;
+	
+	Summarizer summarizer = new MeanSummarizer();
+	
 	public HopachablePAM(BaseMatrix data, DistanceMetric metric) {
 		super(data, metric);
 	}
@@ -30,9 +37,11 @@ public class HopachablePAM extends PAM implements Hopachable, Subsegregatable {
 		super(data, metric, distances, idx);
 	}
 	
-	public void setParameters(int maxK, int maxL) {
+	public void setParameters(int maxK, int maxL, SplitCost splitCost, Summarizer summarizer) {
 		this.maxK = maxK;
 		this.maxL = maxL;
+		this.splitCost = splitCost;
+		this.summarizer = summarizer;
 	}
 
 	@Override
@@ -53,7 +62,14 @@ public class HopachablePAM extends PAM implements Hopachable, Subsegregatable {
 	
 	@Override
 	public Clusters split(boolean forceSplit) {
-		return MSplitSilhouetteCalculator.splitByMedianSplitSilhouette(this, maxK, maxL, forceSplit);
+		switch (splitCost) {
+		case AVERAGE_SPLIT_SILHOUETTE:
+			return MSplitSilhouetteCalculator.splitByAverageSplitSilhouette(this, maxK, maxL, forceSplit, summarizer);
+		case AVERAGE_SILHOUETTE:
+			return MSplitSilhouetteCalculator.splitByAverageSilhouette(this, maxK, forceSplit, summarizer);
+		default:
+			return MSplitSilhouetteCalculator.splitByAverageSplitSilhouette(this, maxK, maxL, forceSplit, summarizer);
+		}
 	}
 
 	@Override

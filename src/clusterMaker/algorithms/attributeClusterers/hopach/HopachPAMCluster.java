@@ -6,6 +6,7 @@ import clusterMaker.algorithms.attributeClusterers.AbstractAttributeClusterAlgor
 import clusterMaker.algorithms.attributeClusterers.Clusters;
 import clusterMaker.algorithms.attributeClusterers.DistanceMetric;
 import clusterMaker.algorithms.attributeClusterers.Matrix;
+import clusterMaker.algorithms.numeric.PrimitiveMeanSummarizer;
 
 public class HopachPAMCluster extends AbstractAttributeClusterAlgorithm {
 	
@@ -23,7 +24,7 @@ public class HopachPAMCluster extends AbstractAttributeClusterAlgorithm {
 		if (monitor != null) monitor.setPercentCompleted(0);
 		
 		HopachPAM hopachPam = new HopachPAM(matrix, metric);
-		hopachPam.setParameters(9,  0,  true);
+		hopachPam.setParameters(9,  0,  true, new PrimitiveMeanSummarizer());
 		Clusters c = hopachPam.run();
 		
 		// copy results into clusterId
