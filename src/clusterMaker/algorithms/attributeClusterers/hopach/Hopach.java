@@ -55,7 +55,7 @@ public class Hopach {
 		initialize();
 	}
 	
-	public void setParameters(int maxLevel, int minCostReduction, boolean forceInitSplit, PrimitiveSummarizer psummarizer) {
+	public void setParameters(int maxLevel, double minCostReduction, boolean forceInitSplit, PrimitiveSummarizer psummarizer) {
 		this.maxLevel = maxLevel;
 		this.minCostReduction = minCostReduction;
 		this.forceInitSplit = forceInitSplit;
@@ -121,7 +121,7 @@ public class Hopach {
 			++level;
 			
 			// break if max level exceeded, or splitting has converged
-			if (level > maxLevel || nextLevel(level)) {
+			if (level >= maxLevel || nextLevel(level)) {
 				// last split is ignored, since it did not do anything
 				break;
 			}
@@ -220,7 +220,6 @@ public class Hopach {
 	
 	/**
 	 * Attempt to split the next level.
-	 * TODO option to use different summarization of cost?
 	 * @param level next level to split
 	 * @return convergence
 	 */

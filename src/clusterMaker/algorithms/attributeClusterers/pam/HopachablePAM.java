@@ -9,13 +9,13 @@ import clusterMaker.algorithms.attributeClusterers.hopach.types.SplitCost;
 import clusterMaker.algorithms.attributeClusterers.hopach.types.Subsegregatable;
 import clusterMaker.algorithms.attributeClusterers.silhouette.DistanceCalculator;
 import clusterMaker.algorithms.attributeClusterers.silhouette.MSplitSilhouetteCalculator;
+import clusterMaker.algorithms.attributeClusterers.silhouette.SilhouetteCalculator;
 import clusterMaker.algorithms.numeric.MeanSummarizer;
 import clusterMaker.algorithms.numeric.Summarizer;
 
 /**
  * A PAM partitioner that implements Hopachable.
  * @author djh.shih
- *
  */
 public class HopachablePAM extends PAM implements Hopachable, Subsegregatable {
 	
@@ -63,10 +63,9 @@ public class HopachablePAM extends PAM implements Hopachable, Subsegregatable {
 	@Override
 	public Clusters split(boolean forceSplit) {
 		switch (splitCost) {
-		case AVERAGE_SPLIT_SILHOUETTE:
-			return MSplitSilhouetteCalculator.splitByAverageSplitSilhouette(this, maxK, maxL, forceSplit, summarizer);
 		case AVERAGE_SILHOUETTE:
 			return MSplitSilhouetteCalculator.splitByAverageSilhouette(this, maxK, forceSplit, summarizer);
+		case AVERAGE_SPLIT_SILHOUETTE:
 		default:
 			return MSplitSilhouetteCalculator.splitByAverageSplitSilhouette(this, maxK, maxL, forceSplit, summarizer);
 		}
@@ -78,13 +77,20 @@ public class HopachablePAM extends PAM implements Hopachable, Subsegregatable {
 		Clusters c = new Clusters(clusters);
 		c.merge(i,  j);
 		// set new cost
-		c.setCost( MSplitSilhouetteCalculator.medianSplitSilhouette(this, c, maxL) );
+		switch (splitCost) {
+		case AVERAGE_SILHOUETTE:
+			c.setCost( 1 - SilhouetteCalculator.silhouettes(this.segregations(c), c).getAverage(summarizer) );
+			break;
+		case AVERAGE_SPLIT_SILHOUETTE:
+		default:
+			c.setCost( MSplitSilhouetteCalculator.averageSplitSilhouette(this, c, maxL, summarizer) );
+			break;
+		}
 		return c;
 	}
 
 	@Override
 	public int[] order(Clusters clusters) {
-		// TODO Auto-generated method stub
 		// put elements of same cluster together, and order the elements within each cluster based on neighbouring clusters
 		return null;
 	}

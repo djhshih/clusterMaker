@@ -15,8 +15,6 @@ import clusterMaker.algorithms.numeric.MedianSummarizer;
  */
 public class MSplitSilhouetteCalculator {
 	
-	public static SplitCost[] splitCosts = { SplitCost.AVERAGE_SILHOUETTE, SplitCost.AVERAGE_SPLIT_SILHOUETTE };
-	
 	public static Clusters segregateByAverageSilhouette(Segregatable seg, int K, Summarizer summarizer) {
 		Clusters split = null;
 		
