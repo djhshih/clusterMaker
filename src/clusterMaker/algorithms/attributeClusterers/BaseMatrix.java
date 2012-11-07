@@ -56,6 +56,7 @@ public class BaseMatrix {
  	 * Make this array public so it can be reused
  	 */
 	public static DistanceMetric[] distanceTypes = { DistanceMetric.EUCLIDEAN,
+	                                                 DistanceMetric.EUCLIDEAN2,
 	                                                 DistanceMetric.CITYBLOCK,
 	                                                 DistanceMetric.CORRELATION,
 	                                                 DistanceMetric.ABS_CORRELATION,

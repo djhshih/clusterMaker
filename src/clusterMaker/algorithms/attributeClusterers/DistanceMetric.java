@@ -43,7 +43,8 @@ public enum DistanceMetric {
 	ABS_CORRELATION("Pearson correlation, absolute value"),
 	SPEARMANS_RANK("Spearman's rank correlation"),
 	KENDALLS_TAU("Kendall's tau"),
-	EUCLIDEAN("Euclidean distance"),
+	EUCLIDEAN("Euclidean distance squared"),
+	EUCLIDEAN2("Euclidean distance"),
 	CITYBLOCK("City-block distance");
 
 	private String name;
@@ -60,6 +61,8 @@ public enum DistanceMetric {
 	                        int index1, int index2) {
 		switch (this) {
 			case EUCLIDEAN:
+				return euclidSqMetric(data1, data2, weights, index1, index2);
+			case EUCLIDEAN2:
 				return euclidMetric(data1, data2, weights, index1, index2);
 			case CITYBLOCK:
 				return cityblockMetric(data1, data2, weights, index1, index2);
@@ -83,6 +86,11 @@ public enum DistanceMetric {
 
 	// Distance metric calculations
 	private static double euclidMetric(BaseMatrix data1, BaseMatrix data2, double[] weights, 
+	                            int index1, int index2) {
+		return Math.sqrt(euclidSqMetric(data1, data2, weights, index1, index2));
+	}
+	
+	private static double euclidSqMetric(BaseMatrix data1, BaseMatrix data2, double[] weights, 
 	                            int index1, int index2) {
 		double result = 0.0;
 		double tweight = 0.0;
