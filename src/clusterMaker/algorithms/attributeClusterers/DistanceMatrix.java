@@ -28,15 +28,7 @@ public class DistanceMatrix {
 	public DistanceMatrix(BaseMatrix data, DistanceMetric metric, int[] idx) {
 		this.matrix = data.getDistanceMatrix(metric);
 		this.metric = metric;
-		
-		if (idx == null) {
-			// initialize indexing array to original order
-			idx = new int[matrix.length];
-			for (int i = 0; i < matrix.length; ++i) {
-				idx[i] = i;
-			}
-		}
-		this.idx = idx;
+		initIndex(idx);
 	}
 	
 	/**
@@ -45,9 +37,20 @@ public class DistanceMatrix {
 	 * @param metric metric
 	 * @param idx index array
 	 */
-	private DistanceMatrix(double[][] matrix, DistanceMetric metric, int[] idx) {
+	public DistanceMatrix(double[][] matrix, DistanceMetric metric, int[] idx) {
 		this.matrix = matrix;
 		this.metric = metric;
+		initIndex(idx);
+	}
+	
+	private void initIndex(int[] idx) {
+		if (idx == null) {
+			// initialize indexing array to original order
+			idx = new int[matrix.length];
+			for (int i = 0; i < matrix.length; ++i) {
+				idx[i] = i;
+			}
+		}
 		this.idx = idx;
 	}
 	

@@ -33,7 +33,7 @@ public class HopachablePAM extends PAM implements Hopachable, Subsegregatable {
 		super(data, metric);
 	}
 	
-	HopachablePAM(BaseMatrix data, DistanceMetric metric, DistanceMatrix distances, int[] idx) {
+	public HopachablePAM(BaseMatrix data, DistanceMetric metric, DistanceMatrix distances, int[] idx) {
 		super(data, metric, distances, idx);
 	}
 	

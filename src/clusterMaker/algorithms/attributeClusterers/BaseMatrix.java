@@ -109,6 +109,22 @@ public class BaseMatrix {
 		}
 	}
 	
+	public BaseMatrix(Double data[][]) {
+		int rows = data.length, cols = 0;
+		if (rows > 0) cols = data[0].length;
+		init(rows, cols);
+		
+		for (int i = 0; i < rows; ++i) {
+			if (cols != data[0].length) {
+				throw new IllegalArgumentException("Data array length is not the same across rows.");
+			}
+			// copy data over
+			for (int j = 0; j < cols; ++j) {
+				matrix[i][j] = data[i][j];
+			}
+		}
+	}
+	
 	private void init(int rows, int cols) {
 		this.nRows = rows;
 		this.nColumns = cols;
