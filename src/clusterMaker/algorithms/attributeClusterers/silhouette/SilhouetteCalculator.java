@@ -121,7 +121,7 @@ public class SilhouetteCalculator {
 	
 	/**
 	 * Calculate the silhouette profile, given a matrix of distances between data points and clusters (segregation matrix),
-	 * or a matrix of distances between clusters and clusters (segregation matrix)
+	 * or a matrix of distances between clusters and clusters (separation matrix)
 	 * @param S matrix of distances
 	 * @param clusters
 	 */
