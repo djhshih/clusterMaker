@@ -29,7 +29,7 @@ public class Hopach {
 	ArrayList<Clusters> splits;
 	
 	// maximum number of partitioning levels
-	int maxLevel = 9;
+	int maxLevel = 15;
 	
 	// minimum cost reduction
 	double minCostReduction = 0;
