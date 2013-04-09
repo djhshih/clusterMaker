@@ -801,6 +801,11 @@ public class PAM
 
 	// DONE
 	// NB converted from 1-based index to 0-based index
+	/**
+	 * Compute distances array.
+	 *
+	 * 0-based indexing
+	 */
 	public void dysta(
 		// in: number of nodes
 		int nn,
@@ -887,6 +892,7 @@ public class PAM
 	}
 
 	/**
+	 * Convert 2-D coordinate into linear index of lower diagonal matrix (starting at 1,0 excluding diagonal).
 	 * Linear index of dys[.] where d(i,j) is stored:
 	 * d(l,j) == dys[ind_2(i,j)]
 	 *
