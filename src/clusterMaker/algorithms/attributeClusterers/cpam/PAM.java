@@ -890,11 +890,11 @@ public class PAM
 	 * Linear index of dys[.] where d(i,j) is stored:
 	 * d(l,j) == dys[ind_2(i,j)]
 	 *
-	 * dys uses 0-based indexing, but i,j are 1-based indexing
+	 * 0-based indexing
 	 */
 	private int ind_2(int i, int j) {
-		// max_m is the largest integer m s.t. (m-2)*(m-1) < MAX_INT
-		static final max_m = 46342;
+		// max_m is the largest integer m s.t. (m-1)*m < Integer.MAX_VALUE = 2^31 - 1
+		static final max_m = 46341;
 
 		int result = 0;
 		if (i != j) {
@@ -904,8 +904,8 @@ public class PAM
 			int n = (i > j) ? j : i;
 
 			result = (m <= max_m)
-				? (m-2)*(m-1)/2 + n
-				: (int) (((double) m-2)*(m-1)/2 + n);
+				? (m-1)*m/2 + n + 1
+				: (int) ((double)(m-1)*m/2 + n + 1);
 		}
 
 		return result;
