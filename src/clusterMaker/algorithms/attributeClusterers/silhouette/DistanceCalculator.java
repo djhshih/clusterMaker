@@ -46,7 +46,8 @@ public class DistanceCalculator {
 			int c = clusters.getClusterIndex(i);
 			int size = sizes[c];
 			if (size > 1) {
-				S[i][c] *= size / (size - 1);
+				// cast size to double s.t. RHS is not truncated to 1
+				S[i][c] *= (double)size / (size - 1);
 			}
 		}
 		

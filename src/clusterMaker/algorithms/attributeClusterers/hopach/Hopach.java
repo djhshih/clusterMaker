@@ -29,7 +29,7 @@ public class Hopach {
 	ArrayList<Clusters> splits;
 	
 	// maximum number of partitioning levels
-	int maxLevel = 9;
+	int maxLevel = 15;
 	
 	// minimum cost reduction
 	double minCostReduction = 0;
@@ -86,6 +86,10 @@ public class Hopach {
 		return partitioner;
 	}
 	
+	public ArrayList<Clusters> getSplits() {
+		return splits;
+	}
+	
 	void initialize() {
 		// pre-allocate space-holders
 		this.splits = new ArrayList<Clusters>(maxLevel);
@@ -134,7 +138,7 @@ public class Hopach {
 	
 	/**
 	 * Split the initial level.
-	 * Pollard DIFF:  no option to force split
+	 * It is up to the partitioner to decide whether to honour the request of a forced split. 
 	 * @return possibility of continuing split
 	 */
 	Clusters initLevel() {
@@ -162,7 +166,7 @@ public class Hopach {
 		if (k <= 2) {
 			// if k == 1, no collapse is possible
 			// if k == 2, no improvement will occur from k = 2 to k = 1,
-			//            since partitioning into k =2 was chosen over k =1 during the partitioning step
+			//            since partitioning into k = 2 was chosen over k = 1 during the partitioning step
 			// therefore, the correct action is: do nothing and return original split
 			return split;
 		}
@@ -226,7 +230,7 @@ public class Hopach {
 	boolean nextLevel(int level) {
 		// nextLevel can only be invoked for level >= 1
 		if (level < 1) {
-			throw new IllegalArgumentException("nextlevel can only be invoked for level >= 1");
+			throw new IllegalArgumentException("nextLevel can only be invoked for level >= 1");
 		}
 		
 		// clusters in parent level
