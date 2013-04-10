@@ -63,7 +63,7 @@ public class PAM
 		// inout: if cluster.only integer else integer^k
 		// nisol[0] != 0 indicates do.swap = true
 		int[] nisol,
-		// in
+		// in: not used (pamonce == 1 or pamonce == 2 is not implemented)
 		int pamonce
 	) {
 
@@ -171,9 +171,10 @@ public class PAM
 
 	}
 
-	// FIXME 1-based indexing
 	/**
 	 * Clustering algorithm in 2 parts: build, swap
+	 *
+	 * 0-based indexing
 	 */
 	public void bswap(
 		// in: number of clusters
@@ -199,7 +200,7 @@ public class PAM
 		// [KR p.103]
 		double[] dysmb,
 		// out: avsyl
-		double beter,
+		double[] beter,
 		// in: distances
 		double[] dys,
 		// in: largest value in dys
@@ -210,15 +211,8 @@ public class PAM
 		int pamonce
 	) {
 
-		int i, j, ij, k, h, dig_n;
+		int i, j, ij, k, h;
 		double sky;
-
-		// 1-based indexing
-		// TODO  convert to 0-based indexing!
-		--nrepr;
-		--beter;
-		--dysma;
-		--dysmb;
 
 		if (trace_lev) {
 			System.out.printf("pam()'s bswap(*, s=%g, pamonce=%d): ", s, pamonce);
@@ -230,10 +224,10 @@ public class PAM
 
 		// PROPOSAL: when n is large compared to k (k == kk)
 		// use a sparse representation
-		// instead of boolean vector nrepre[], use ind_repr <- which(nrepr)
+		// instead of boolean vector nrepr[], use ind_repr <- which(nrepr)
 		
 		// initialize dysma to max value
-		for (i = 1; i <= n; ++i) {
+		for (i = 0; i < n; ++i) {
 			dysma[i] = s;
 		}
 
@@ -241,9 +235,9 @@ public class PAM
 			if (trace_lev) System.out.printf("medoids given\n");
 
 			// dysma[j] := D(j, medoid_nearest)
-			for (i = 1; i <= n; ++i) {
+			for (i = 0; i < n; ++i) {
 				if (nrepr[i] == 1) {
-					for (j = 1; j <= n; ++j) {
+					for (j = 0; j < n; ++j) {
 						ij = ind_2(i, j);
 						if (dysma[j] > dys[ij]) {
 							dysma[j] = dys[ij];
@@ -270,11 +264,11 @@ public class PAM
 				double ammax, cmd;
 				ammax = 0.0;
 
-				for (i = 1; i <= n; ++i) {
+				for (i = 0; i < n; ++i) {
 					if (nrepr[i] == 0) {
 						// node i is not a medoid
 						beter[i] = 0.0;
-						for (j = 1; j <= n; ++j) {
+						for (j = 0; j < n; ++j) {
 							cmd = dysma[j] - dys[ind_2(i, j)];
 							if (cmd > 0.0) {
 								// node i is closer to j than j's nearest medoid is to j
@@ -298,7 +292,7 @@ public class PAM
 				if (trace_lev >= 2) System.out.printf("    new repr. %d\n", nmax);
 				
 				// update dysma to reflect that node nmax is now a medoid
-				for (j = 1; j <= n; ++j) {
+				for (j = 0; j < n; ++j) {
 					ij = ind_2(nmax, j);
 					if (dysma[j] > dys[ij]) {
 						dysma[j] = dys[ij];
@@ -318,7 +312,7 @@ public class PAM
 
 		// compute the sum of D(j, medoid_nearest)
 		sky = 0.0;
-		for (j = 1; j <= n; ++j) {
+		for (j = 0; j < n; ++j) {
 			sky += dysma[j];
 		}
 		// objective function after build phase
@@ -346,11 +340,11 @@ public class PAM
 				// compute dysma and dysmb
 				// find distances of each node to nearest medoid (dysma) and
 				// to second-nearest medoid (dysmb)
-				for (j = 1; j <= n; ++j) {
+				for (j = 0; j < n; ++j) {
 					// initialize to max value
 					dysma[j] = s;
 					dysmb[j] = s;
-					for (i = 1; i <= n; ++i) {
+					for (i = 0; i < n; ++i) {
 						if (nrepr[i]) {
 							ij = ind_2(i, j);
 							if (dysma[j] > dys[ij]) {
@@ -368,16 +362,16 @@ public class PAM
 				// dzsky := min_{i,j} T_{i,h}
 
 				// iterate through all non-medoids
-				for (h = 1; h <= n; ++h) if (nrepr[h] == 0) {
+				for (h = 0; h < n; ++h) if (nrepr[h] == 0) {
 					// OPTIONAL: check user interrupt
 					
 					// iterate through all medoids
-					for (i = 1; i <= n; ++i) if (nrepr[i]) {
+					for (i = 0; i < n; ++i) if (nrepr[i]) {
 						double dz = 0.0;
 						// dz := T_{ih} := sum_j c_{jih}  [p.104]
 
 						// iterate through all nodes
-						for (j = 1; j <= n; ++j) {
+						for (j = 0; j < n; ++j) {
 							int hj = ind_2(h, j);
 							ij = ind_2(i, j);
 							if (dys[ij] == dysma[j]) {
