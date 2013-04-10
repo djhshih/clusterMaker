@@ -49,7 +49,9 @@ public class PAM
 		double[] separ,
 		// out: pass single value by reference
 		double[] ttsyl,
-		// inout: [cluster.only, trace.level]
+		// reused variable
+		// in: [cluster.only, trace.level]
+		// out: values of objective function after build and after swap phases
 		double[] obj,
 		// inout: initial medoids (modified unless cluster.only == true)
 		// medoid labels use 1-based indexing
@@ -139,6 +141,7 @@ public class PAM
 	
 	bswap(kk, nn, nrepr, med_given, do_swap, trace_lev,
 		radus, damer, avsyl, dys, s, obj, pamonce);
+	// NB  radus, damer, and avsyl are used for scratch space here
 
 	if (trace_lev) {
 		System.out.printf("end{bsawp()}, ");
@@ -189,17 +192,17 @@ public class PAM
 		boolean do_swap,
 		// debugging trace level
 		int trace_lev,
-		// out: radus
+		// out
 		// dysma[j] := D_j
 		//          := d(j, medoid_nearest)
 		// [KR p.102, 104]
 		double[] dysma,
-		// out: damer
+		// out
 		// dysmb[j] := E_j
 		//          := d(j, medoid_second_nearest)
 		// [KR p.103]
 		double[] dysmb,
-		// out: avsyl
+		// out
 		double[] beter,
 		// in: distances
 		double[] dys,
