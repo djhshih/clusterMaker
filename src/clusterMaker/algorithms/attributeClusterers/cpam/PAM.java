@@ -39,13 +39,16 @@ public class PAM
 		int[] nrepr,
 		// out: if cluster.only integer^1 else integer^n
 		int[] nelem,
-		// out: double^n
+		// out: double^n  (reused as scratch space by bswap)
+		// output will actually only meaningful data for double^k
 		double[] radus,
-		// out: double^n
+		// out: double^n  (reused as scratch space by bswap)
+		// output will actually only meaningful data for double^k
 		double[] damer,
-		// out: double^n
+		// out: double^n  (reused as scratch space by bswap)
+		// output will actually only meaningful data for double^k
 		double[] avsyl,
-		// out: double^n
+		// out: double^k  (R allocates double^n)
 		double[] separ,
 		// out: pass single value by reference
 		double[] ttsyl,
@@ -56,12 +59,12 @@ public class PAM
 		// inout: initial medoids (modified unless cluster.only == true)
 		// medoid labels use 1-based indexing
 		int[] med,
-		// out: cluster labels
+		// out: cluster labels, integer^n
 		int[] ncluv,
-		// out: cluster information (k x 5)
+		// out: cluster information (5 x k)
 		double[] clusinf,
-		// out: silouette information (n x 4)
-		double sylinf,
+		// out: silouette information (4 x n)
+		double[] sylinf,
 		// inout: if cluster.only integer else integer^k
 		// nisol[0] != 0 indicates do.swap = true
 		int[] nisol,
@@ -184,6 +187,7 @@ public class PAM
 		int kk,
 		// in: number of nodes
 		int n,
+		// in: integer^n
 		// nrepr[]: here is boolean (0/1): 1 = "is a representative object (medoid)"
 		int[] nrepr,
 		// in: skip build step if initial medoids are given
@@ -192,17 +196,17 @@ public class PAM
 		boolean do_swap,
 		// debugging trace level
 		int trace_lev,
-		// out
+		// out: double^n
 		// dysma[j] := D_j
 		//          := d(j, medoid_nearest)
 		// [KR p.102, 104]
 		double[] dysma,
-		// out
+		// out: double^n
 		// dysmb[j] := E_j
 		//          := d(j, medoid_second_nearest)
 		// [KR p.103]
 		double[] dysmb,
-		// out
+		// out: double^n
 		double[] beter,
 		// in: distances
 		double[] dys,
@@ -425,7 +429,6 @@ public class PAM
 
 	}
 
-	// FIXME: 1-based indexing
 	/**
 	 * Compute STATistics (numerical output) concerning each partition
 	 */
@@ -434,28 +437,28 @@ public class PAM
 		int kk,
 		// in
 		int nn,
-		// out: integer^k
+		// out: integer^n
 		// assigned medoid label of each element
 		int[] nsend,
-		// in
+		// in: double^n
 		int[] nrepr,
 		// in
 		boolean all_stats,
-		// in
+		// out: double^k
 		double[] radus,
-		// in
+		// out: double^k
 		double[] damer,
-		// in
+		// out: double^k
 		double[] avsyl,
-		// out
+		// out: double^K
 		double[] separ,
 		// in
 		double s,
-		// in
+		// in: distances
 		double[] dys,
-		// out
+		// out: integer^n
 		int[] ncluv,
-		// out
+		// out: integer^n
 		int[] nelem,
 		// out: integer^k
 		int[] med,
@@ -463,23 +466,10 @@ public class PAM
 		int[] nisol
 	) {
 
-		// Wall
 		int j, k, ja, jk, nplac, ksmal = -1
 
 		// make ss largest than s := max_i dys[i]
 		double ss = s * 1.1 + 1.0;
-
-		// parameter adjustments
-		// DAVID: for 1-based indexing
-		// FIXME convert to 0-based indexing
-		--nelem;
-		--ncluv;
-		--separ;
-		--avsyl;
-		--damer;
-		--radus;
-		--nrepr;
-		--nsend;
 
 		// nsend[j] := i, where x[i,] is the medoid to which x[j,] belongs
 		for (j = 0; j < nn; ++j) {
@@ -659,46 +649,50 @@ public class PAM
 
 	}
 
-	// FIXME: array slices, 1-based indexing
 	/**
 	 * Compute silhouette information
 	 */
 	public void dark(
+		// in
 		int kk,
+		// in
 		int nn,
+		// in: integer^n
 		int[] ncluv,
-		int nsend,
-		int nelem,
-		int negbr,
-		double syl,
-		double srank,
+		// in: integer^n
+		int[] nsend,
+		// out: integer^n
+		int[] nelem,
+		// out: integer^n
+		int[] negbr,
+		// out: double^n (scratch space)
+		double[] syl,
+		// out: double^n (scratch space)
+		double[] srank,
+		// out: double^k
 		double[] avsyl,
+		// out: double^1
 		double[] ttsyl,
+		// in
 		double[] dys,
+		// in
 		double s,
+		// out: silouette information (4 x nn)
 		double[] sylinf
 	) {
 
 		int k, nsylr;
 
-		// pointers to sylinf[] columns -- sylinf[nn, 4]
-		// sylinf_1 sylinf_2, sylinf_3, sylinf_4;
-		
-		// parameter adjustments
-		// David FIXME: These are meant to point to one element ahead of the first element of the array....
-		//              Cannot do this in Java!
-		//              These adjustments were for 1-based indexing
-		--avsyl;
-		--ncluv;
-
 		nsylr = 0;
 		ttysl = 0.0;
 
-		for (k = 1; k <= kk; ++k) {
+		for (k = 0; k < kk; ++k) {
 
-			// nelem[0:(ntt-1)] := indices (1-based) of obs in cluster k
+			// nelem[0:(ntt-1)] := indices (0-based) of obs in cluster k
+			// ntt = number of elements in cluster k
+			// nelem is re-used for each cluster
 			int j, l, ntt = 0;
-			for (j = 1; j <= nn; ++j) {
+			for (j = 0; j < nn; ++j) {
 				if (ncluv[j] == k) {
 					nelem[ntt] = j;
 					++ntt;
@@ -708,15 +702,15 @@ public class PAM
 			// (j+1)-th obs. in cluster k
 			for (j = 0; j < ntt; ++j) {
 				int k_, nj = nelem[j];
-				// WHY 1.1?
+				// maximum value
 				double dysb = s * 1.1 + 1.;
 				negbr[j] = 1;
 
 				// for all clusters k_ != k
-				for (k_ = 1; k_ <= kk; ++k_) if (k_ != k) {
+				for (k_ = 0; k_ < kk; ++k_) if (k_ != k) {
 					double db = 0.0;
 					int nbb = 0;
-					for (l = 1; l <= nn; ++l) if (ncluv[l] == k_) {
+					for (l = 0; l < nn; ++l) if (ncluv[l] == k_) {
 						++nbb;
 						if (l != nj) {
 							// NOTE
@@ -781,7 +775,6 @@ public class PAM
 			}
 
 			for (j = 0; j < ntt; ++j) {
-				// Wall
 				int lang = -1;
 				double symax = -2.0;
 				for (l = 0; l < ntt; ++l) {
@@ -800,18 +793,18 @@ public class PAM
 			avsyl[k] /= ntt;
 			if (ntt == 1) {
 				// FIXME convert (x,y) index to linear index
-				sylinf[nsylr, 0] = (double) k;
-				sylinf[nsylr, 1] = (double) negbr[0];
-				sylinf[nsylr, 2] = 0.0;
-				sylinf[nsylr, 3] = (double) nelem[0];
+				sylinf[nsylr + nn*0] = (double) k;
+				sylinf[nsylr + nn*1] = (double) negbr[0];
+				sylinf[nsylr + nn*2] = 0.0;
+				sylinf[nsylr + nn*3] = (double) nelem[0];
 				++nsylr;
 			} else {
 				for (j = 0; j < ntt; ++j) {
 					int lplac = nsend[j];
-					sylinf[nsylr, 0] = (double) k;
-					sylinf[nsylr, 1] = (double) negbr[lplac];
-					sylinf[nsylr, 2] = srank[j];
-					sylinf[nsylr, 3] = (double) nelem[lplac];
+					sylinf[nsylr + nn*0] = (double) k;
+					sylinf[nsylr + nn*1] = (double) negbr[lplac];
+					sylinf[nsylr + nn*2] = srank[j];
+					sylinf[nsylr + nn*3] = (double) nelem[lplac];
 					++nsylr;
 				}
 			}
