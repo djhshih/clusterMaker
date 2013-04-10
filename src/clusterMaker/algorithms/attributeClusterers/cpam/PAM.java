@@ -1,13 +1,9 @@
-//NB all parameters are passed by pointer
-//TODO find out which variables are arrays
-//TODO find out which variables are modified by function calls!
-
-import java.io.System;
-
+package clusterMaker.algorithms.attributeClusterers.cpam;
 
 public class PAM
 {
-
+	final static double DBL_EPSILON = 2.2204460492503131e-16;
+	
 	/**
 	 * Cluster by PAM.
 	 * All arrays (in or out) must be preallocated to appropriate size
@@ -19,7 +15,7 @@ public class PAM
 		int p,
 		// in: number of clusters
 		int kk,
-		// in: data
+		// in: data, double^{nn * p}
 		double[] x,
 		// out: distances, double^(nn*(nn-1)/2 + 1)
 		double[] dys,
@@ -27,10 +23,10 @@ public class PAM
 		// 0 => compute distances from x
 		// 1 => distances provided in x
 		int jdyss,
-		// in
-		double valmd,
-		// in
-		int jtmd,
+		// in, double^p
+		double[] valmd,
+		// in, integer^p
+		int[] jtmd,
 		// in: distance metric, 1 => euclidean; otherwise => manhattan
 		int ndyst,
 		// out: integer^n
@@ -72,109 +68,111 @@ public class PAM
 		int pamonce
 	) {
 
-	// row dimension of cluster information matrix (ncol = 5)
-	int clusinf_dim1 = kk;
-
-	// local variables
-	// if false, only do clustering and return ncluv[]
-	boolean all_stats = (obj[0] == 0);
-	// if true med[] contain initial medoids
-	boolean med_given = (med != null);
-	boolean do_swap = (nisol[0] != 0);
-
-	int k, i, nhalf;
-	int[] jhalt = new int[1];
-	int trace_lev = (int) obj[1];
-
-	// function body
-	// nhalf := #{distances}+1 = sizeof(dys)
-	// number of edges plus one
-	nhalf = nn * (nn -1) / 2 + 1;
-
-	if (jdyss != 1) {
-		// compute distances from x
-
-		jhalt[0] = 0;
-
-		if (trace_lev) {
-			System.out.printf("C pam(): computing %d dissimilarities: ", nhalf);
-		}
-
-		dysta(nn, p, x, dys, ndyst, jtmd, valmd, jhalt);
-
-		if (trace_lev) {
-			Sytem.out.printf("[OK]\n");
-		}
-
-		if (jhalt[0] != 0) {
-			// error occured during distance computation
-			// DIFF: jdyss is not set
-			//jdyss = -1;
-			return;
-		}
-	}
-
-
-	double s = 0.0;
-	// s := max( dys[.] ), the largest distance
-	// self distance (dys[0] == 0) is not considered
-	for (i = 1; i < nhalf; ++i) {
-		if (s < dys[i]) s = dys[i];
-	}
-
-	// FIXME: work with med[] = (i_1, i_2, ..., i_k)
-	//        instead nrepr[] = (b_1, ..., b_n)  b_i in {0,1}
-
-	// initialize nrepr (whether node is a medoid)
-	for (i = 0; i < nn; ++i) {
-		nrepr[i] = 0;
-	}
-
-	// if true, med[] contain initial medoids
-	if (med_given) {
-		// for the moment, translate these to nrepr[] 0/1 :
-		// not assuming that the med[] indices are sorted
-		for (k = 0; k < kk; ++k) {
-			nrepr[med[k] - 1] = 1;
-		}
-	}
-
-	// Build + Swap
-	// but no build if (med_given); swap only if (do_swap)
+		// row dimension of cluster information matrix (ncol = 5)
+		int clusinf_dim1 = kk;
 	
-	bswap(kk, nn, nrepr, med_given, do_swap, trace_lev,
-		radus, damer, avsyl, dys, s, obj, pamonce);
-	// NB  radus, damer, and avsyl are used for scratch space here
-
-	if (trace_lev) {
-		System.out.printf("end{bsawp()}, ");
-	}
-
-	// Compute clusering & STATS if (all_stats)
-	cstat(kk, nn, nsend, nrepr, all_stats,
-		radus, damer, avsyl, separ, s, dys, ncluv, nelem, med, nisol);
+		// local variables
+		// if false, only do clustering and return ncluv[]
+		boolean all_stats = (obj[0] == 0);
+		// if true med[] contain initial medoids
+		boolean med_given = (med != null);
+		boolean do_swap = (nisol[0] != 0);
 	
-	if (trace_lev) {
-		System.out.printf("end{cstat()}\n");
-	}
-
-	if (all_stats) {
-
-		// assemble cluster information into one array (matrix)
-		for (k = 0; k < kk; ++k) {
-			clusinf[k] = (double) nrepr[k];
-			clusinf[k + clusinf_dim1] = radus[k];
-			clusinf[k + (clusinf_dim1 * 2)] = avsyl[k];
-			clusinf[k + (clusinf_dim1 * 3)] = damer[k];
-			clusinf[k + (clusinf_dim1 * 4)] = separ[k];
+		int k, i, nhalf;
+		int[] jhalt = new int[1];
+		int trace_lev = (int) obj[1];
+	
+		// function body
+		// nhalf := #{distances}+1 = sizeof(dys)
+		// number of edges plus one
+		nhalf = nn * (nn -1) / 2 + 1;
+	
+		if (jdyss != 1) {
+			// compute distances from x
+	
+			jhalt[0] = 0;
+	
+			if (trace_lev > 0) {
+				System.out.printf("C pam(): computing %d dissimilarities: ", nhalf);
+			}
+	
+			dysta(nn, p, x, dys, ndyst, jtmd, valmd, jhalt);
+	
+			if (trace_lev > 0) {
+				System.out.printf("[OK]\n");
+			}
+	
+			if (jhalt[0] != 0) {
+				// error occured during distance computation
+				// DIFF: jdyss is not set
+				//jdyss = -1;
+				return;
+			}
 		}
-
-		if (1 < kk && kk < nn) {
-			// Compute silhouette info
-			dark(kk, nn, ncluv, nsend, nelem, nrepr,
-				radus, damer, avsyl, ttsyl, dys, s, sylinf);
+	
+	
+		double s = 0.0;
+		// s := max( dys[.] ), the largest distance
+		// self distance (dys[0] == 0) is not considered
+		for (i = 1; i < nhalf; ++i) {
+			if (s < dys[i]) s = dys[i];
 		}
-
+	
+		// Proposal (in R cluster::pam):
+		//           work with med[] = (i_1, i_2, ..., i_k)
+		//           instead nrepr[] = (b_1, ..., b_n)  b_i in {0,1}
+	
+		// initialize nrepr (whether node is a medoid)
+		for (i = 0; i < nn; ++i) {
+			nrepr[i] = 0;
+		}
+	
+		// if true, med[] contain initial medoids
+		if (med_given) {
+			// for the moment, translate these to nrepr[] 0/1 :
+			// not assuming that the med[] indices are sorted
+			for (k = 0; k < kk; ++k) {
+				nrepr[med[k] - 1] = 1;
+			}
+		}
+	
+		// Build + Swap
+		// but no build if (med_given); swap only if (do_swap)
+		
+		bswap(kk, nn, nrepr, med_given, do_swap, trace_lev,
+			radus, damer, avsyl, dys, s, obj, pamonce);
+		// NB  radus, damer, and avsyl are used for scratch space here
+	
+		if (trace_lev > 0) {
+			System.out.printf("end{bsawp()}, ");
+		}
+	
+		// Compute clustering & STATS if (all_stats)
+		cstat(kk, nn, nsend, nrepr, all_stats,
+			radus, damer, avsyl, separ, s, dys, ncluv, nelem, med, nisol);
+		
+		if (trace_lev > 0) {
+			System.out.printf("end{cstat()}\n");
+		}
+	
+		if (all_stats) {
+	
+			// assemble cluster information into one array (matrix)
+			for (k = 0; k < kk; ++k) {
+				clusinf[k] = (double) nrepr[k];
+				clusinf[k + clusinf_dim1] = radus[k];
+				clusinf[k + (clusinf_dim1 * 2)] = avsyl[k];
+				clusinf[k + (clusinf_dim1 * 3)] = damer[k];
+				clusinf[k + (clusinf_dim1 * 4)] = separ[k];
+			}
+	
+			if (1 < kk && kk < nn) {
+				// Compute silhouette info
+				dark(kk, nn, ncluv, nsend, nelem, nrepr,
+					radus, damer, avsyl, ttsyl, dys, s, sylinf);
+			}
+	
+		}
 	}
 
 	/**
@@ -221,7 +219,7 @@ public class PAM
 		int i, j, ij, k, h;
 		double sky;
 
-		if (trace_lev) {
+		if (trace_lev > 0) {
 			System.out.printf("pam()'s bswap(*, s=%g, pamonce=%d): ", s, pamonce);
 		}
 
@@ -229,7 +227,8 @@ public class PAM
 		// (alternative is to set s to DBL_MAX, which is too large)
 		s = s * 1.1 + 1.0;
 
-		// PROPOSAL: when n is large compared to k (k == kk)
+		// Proposal (in R cluster::pam):
+		// when n is large compared to k (k == kk)
 		// use a sparse representation
 		// instead of boolean vector nrepr[], use ind_repr <- which(nrepr)
 		
@@ -239,7 +238,7 @@ public class PAM
 		}
 
 		if (med_given) {
-			if (trace_lev) System.out.printf("medoids given\n");
+			if (trace_lev > 0) System.out.printf("medoids given\n");
 
 			// dysma[j] := D(j, medoid_nearest)
 			for (i = 0; i < n; ++i) {
@@ -256,7 +255,7 @@ public class PAM
 			
 			// BUILD phase
 			
-			if (trace_lev) System.out.printf("build %d medoids:\n", kk);
+			if (trace_lev > 0) System.out.printf("build %d medoids:\n", kk);
 
 			// find kk medoids
 			for (k = 1; k <= kk; ++k) {
@@ -331,10 +330,13 @@ public class PAM
 		if (do_swap && (kk > 1 || med_given)) {
 			
 			double dzsky;
-			int hbest = -1, ibest = -1, kbest = -1;
-			int[] medoids = null;
-			int[] clustmembership = null;
-			double[] fvect = null;
+			int hbest = -1, ibest = -1;
+			
+			// variables used by pamonce=1 and pamonce=2 (not implemented)
+			//int kbest = -1;
+			//int[] medoids = null;
+			//int[] clustmembership = null;
+			//double[] fvect = null;
 
 			// NB: only pamonce == FALSE is translated
 
@@ -352,7 +354,7 @@ public class PAM
 					dysma[j] = s;
 					dysmb[j] = s;
 					for (i = 0; i < n; ++i) {
-						if (nrepr[i]) {
+						if (nrepr[i] == 1) {
 							ij = ind_2(i, j);
 							if (dysma[j] > dys[ij]) {
 								dysmb[j] = dysma[j];
@@ -373,7 +375,7 @@ public class PAM
 					// OPTIONAL: check user interrupt
 					
 					// iterate through all medoids
-					for (i = 0; i < n; ++i) if (nrepr[i]) {
+					for (i = 0; i < n; ++i) if (nrepr[i] == 1) {
 						double dz = 0.0;
 						// dz := T_{ih} := sum_j c_{jih}  [p.104]
 
@@ -398,8 +400,7 @@ public class PAM
 
 				}
 
-				final static double DBL_EPSILON = 2.2204e-16;
-				if (dzsky < -16*DBL_EPSILON * fabs(sky)) {
+				if (dzsky < -16 * DBL_EPSILON * Math.abs(sky)) {
 					// essentially, dzsky < 0
 					// but 'dzsky < 0' gave infinite loop:
 					// swapping identical objects improved objective function (sky)
@@ -466,7 +467,7 @@ public class PAM
 		int[] nisol
 	) {
 
-		int j, k, ja, jk, nplac, ksmal = -1
+		int j, k, ja, jk, nplac, ksmal = -1;
 
 		// make ss largest than s := max_i dys[i]
 		double ss = s * 1.1 + 1.0;
@@ -684,7 +685,7 @@ public class PAM
 		int k, nsylr;
 
 		nsylr = 0;
-		ttysl = 0.0;
+		ttsyl[0] = 0.0;
 
 		for (k = 0; k < kk; ++k) {
 
@@ -771,7 +772,7 @@ public class PAM
 			if (ntt == 0) {
 				// this can happen when medoids are user-specified
 				// next k
-				continue
+				continue;
 			}
 
 			for (j = 0; j < ntt; ++j) {
@@ -792,7 +793,6 @@ public class PAM
 			ttsyl[0] += avsyl[k];
 			avsyl[k] /= ntt;
 			if (ntt == 1) {
-				// FIXME convert (x,y) index to linear index
 				sylinf[nsylr + nn*0] = (double) k;
 				sylinf[nsylr + nn*1] = (double) negbr[0];
 				sylinf[nsylr + nn*2] = 0.0;
@@ -827,7 +827,7 @@ public class PAM
 		int nn,
 		// in: number of attributes
 		int p,
-		// in: data
+		// in: data, double^{nn * p}
 		double[] x,
 		// out: distances, preallocated with size double^{m},
 		// where m = number of edges + 1 = nn*(nn-1)/2 + 1
@@ -839,14 +839,15 @@ public class PAM
 		// -1 => column/attribute contains an NA
 		//  1 => column/attribute contains no NA
 		int[] jtmd,
-		// value for missing data (possibly a different value for each attribute)
+		// in: double^p
+		// values for missing data (possibly a different value for each attribute)
 		double[] valmd,
-		// out: error flag (non-zero value denotes error)
+		// out: error flag (non-zero value denotes error), integer^1
 		int[] jhalt
 	) {
 
 		int nlk, j, l, k, lsubt, npres;
-		double pp, clk;
+		double clk;
 
 		// start at index 0
 		nlk = 0;
@@ -874,12 +875,12 @@ public class PAM
 					if (jtmd[j] < 0) {
 						// exact floating point equality
 						// admissible because binary representations are identical
-						if (x[l, j] == valmd[j]) break;
-						if (x[k, j] == valmd[j]) break;
+						if (x[l * p + j] == valmd[j]) break;
+						if (x[k * p + j] == valmd[j]) break;
 						// data point is NA => ignore data point
 					}
 					npres += 1;
-					double d = x[l,j] - x[k,j];
+					double d = x[l * p + j] - x[k * p + j];
 					if (ndyst == 1) {
 						clk += d * d;
 					} else {
@@ -889,7 +890,7 @@ public class PAM
 				if (npres == 0) {
 					// all data points are NA for at least one distance calculation
 					// set the error flag
-					jhalt = 1;
+					jhalt[0] = 1;
 					// arbitrarily set distance to -1
 					dys[nlk] = -1.0;
 				} else {
@@ -906,6 +907,8 @@ public class PAM
 		}
 
 	}
+	
+	final static int max_m = 46341;
 
 	/**
 	 * Convert 2-D coordinate into linear index of lower diagonal matrix (starting at 1,0 excluding diagonal).
@@ -916,7 +919,6 @@ public class PAM
 	 */
 	private int ind_2(int i, int j) {
 		// max_m is the largest integer m s.t. (m-1)*m < Integer.MAX_VALUE = 2^31 - 1
-		static final max_m = 46341;
 
 		int result = 0;
 		if (i != j) {
