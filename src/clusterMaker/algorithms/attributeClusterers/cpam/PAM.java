@@ -427,19 +427,34 @@ public class PAM
 	 * Compute STATistics (numerical output) concerning each partition
 	 */
 	public void cstat(
+		// in
 		int kk,
+		// in
 		int nn,
+		// out: integer^k
+		// assigned medoid label of each element
 		int[] nsend,
+		// in
 		int[] nrepr,
+		// in
 		boolean all_stats,
+		// in
 		double[] radus,
+		// in
 		double[] damer,
+		// in
 		double[] avsyl,
+		// out
 		double[] separ,
+		// in
 		double s,
+		// in
 		double[] dys,
+		// out
 		int[] ncluv,
+		// out
 		int[] nelem,
+		// out: integer^k
 		int[] med,
 		// out: integer^k
 		int[] nisol
@@ -447,13 +462,13 @@ public class PAM
 
 		// Wall
 		int j, k, ja, jk, nplac, ksmal = -1
-		double ss= s * 1.1 + 1.0;
+
+		// make ss largest than s := max_i dys[i]
+		double ss = s * 1.1 + 1.0;
 
 		// parameter adjustments
 		// DAVID: for 1-based indexing
 		// FIXME convert to 0-based indexing
-		--nisol;
-		--med;
 		--nelem;
 		--ncluv;
 		--separ;
@@ -464,13 +479,15 @@ public class PAM
 		--nsend;
 
 		// nsend[j] := i, where x[i,] is the medoid to which x[j,] belongs
-		for (j = 1; j <= nn; ++j) {
+		for (j = 0; j < nn; ++j) {
 			if (nrepr[j] == 0) {
 				double dsmal = ss;
-				for (k = 1; k <= nn; ++k) {
+				// iterate through medoids
+				for (k = 0; k < nn; ++k) {
 					if (nrepr[k] == 1) {
 						int kj_ = ind_2(k, j);
-						if (dsmal > dys[kj_j]) {
+						if (dsmal > dys[kj_]) {
+							// assign node j to closest medoid
 							dsmal = dys[kj_];
 							ksmal = k;
 						}
@@ -478,32 +495,41 @@ public class PAM
 				}
 				nsend[j] = ksmal;
 			} else {
+				// node j is a medoid; assign node j to itself
 				nsend[j] = j;
 			}
 		}
 
-		// ncluv[j] := k, the cluster number (k = 1..kk)
-		jk = 1;
-		nplac = nsend[1];
+		// ncluv[j] := k, the cluster number (k = 0..(kk-1))
+
+		jk = 0;
+
+		// current medoid label
+		nplac = nsend[0];
 		
-		for (j = 1; j <= nn; ++j) {
+		// initialize ncluv, simutaneously assign the first cluster
+		for (j = 0; j < nn; ++j) {
 			ncluv[j] = 0;
+			if (nsend[j] == nplac) {
+				ncluv[j] = jk;
+			}
 		}
 
-		if (nsend[j] == nplac) {
-			ncuv[j] = 1;
-		}
-
-		for (ja = 2; ja <= nn; ++ja) {
+		// iterate from the second node
+		for (ja = 1; ja < nn; ++ja) {
+			// set current medoid label
 			nplac = nsend[ja];
 			if (ncluv[nplac] == 0) {
+				// current node has not been assigned a cluster label
 				++jk;
-				for (j = 2; j <= nn; ++j) {
+				// assign cluster label to all nodes assigned to the current medoid, starting from the second node
+				for (j = 1; j < nn; ++j) {
 					if (nsend[j] == nplac) {
 						ncluv[j] = jk;
 					}
 				}
-				if (jk == kk) break;
+				// early break: final cluster label has already been assigned
+				if (jk == kk-1) break;
 			}
 		}
 
@@ -511,13 +537,12 @@ public class PAM
 			// analysis of the clustering
 
 			int numl;
-			for (k = 1; k <= kk; ++k) {
-				// Wall
+			for (k = 0; k < kk; ++k) {
 				int ntt = 0, m = -1;
 				double ttt = 0.0;
 				radus[k] = -1.0;
-				// OPTIONAL check user interrupt here
-				for (j = 1; j <= nn; ++j) {
+				// OPTIONAL: check user interrupt here
+				for (j = 0; j < nn; ++j) {
 					if (ncluv[j] == k) {
 						double djm;
 						++ntt;
@@ -536,8 +561,8 @@ public class PAM
 			}
 
 			if (kk == 1) {
-				damer[1] = s;
-				nrepr[1] = nn;
+				damer[0] = s;
+				nrepr[0] = nn;
 				return;
 			}
 
@@ -545,27 +570,28 @@ public class PAM
 			
 			// numl = number of L-clusters
 			numl = 0;
-			for (k = 1; k <= kk; ++k) {
+			for (k = 0; k < kk; ++k) {
 				// identification of cluster k
 				// nelem = vector of object indices
 				// nel = number of objects
 				int nel = 0;
+
 				// OPTIONAL check user interrupt here
 
-				for (j = 1; j <= nn; ++j) {
+				for (j = 0; j < nn; ++j) {
 					if (ncluv[j] == k) {
-						++nel;
 						nelem[nel] = j;
+						++nel;
 					}
 				}
 
 				nrepr[k] = nel;
 
 				if (nel == 1) {
-					int nvn = nelem[1];
+					int nvn = nelem[0];
 					damer[k] = 0.0;
 					separ[k] = ss;
-					for (j = 1; j <= nn; ++j) {
+					for (j = 0; j < nn; ++j) {
 						if (j != nvn) {
 							int mevj = ind_2(nvn, j);
 							if (separ[k] > dys[mevj]) {
@@ -584,10 +610,10 @@ public class PAM
 					// nel != 1
 					double dam = -1.0, sep = ss;
 					boolean kand = true;
-					for (ja = 1; ja <= nel; ++ja) {
+					for (ja = 0; ja < nel; ++ja) {
 						int jb, nvna = nelem[ja];
 						double aja = -1.0, ajb = ss;
-						for (jb = 1; jb <= nn; ++jb) {
+						for (jb = 0; jb < nn; ++jb) {
 							int jndz = ind_2(nvna, jb);
 							if (ncluv[jb] == k) {
 								if (aja < dys[jndz]) {
