@@ -59,10 +59,10 @@ public class PAM
 		int[] ncluv,
 		// out: cluster information (5 x k)
 		double[] clusinf,
-		// out: silouette information (4 x n)
+		// out: silhouette information (4 x n)
 		double[] sylinf,
-		// inout: if cluster.only integer else integer^k
-		// nisol[0] != 0 indicates do.swap = true
+		// in:  nisol[0] != 0 indicates do.swap = true
+		// out: if cluster.only integer^1 else integer^k
 		int[] nisol,
 		// in: not used (pamonce == 1 or pamonce == 2 is not implemented)
 		int pamonce
@@ -103,7 +103,7 @@ public class PAM
 			}
 	
 			if (jhalt[0] != 0) {
-				// error occured during distance computation
+				// error occurred during distance computation
 				// DIFF: jdyss is not set
 				//jdyss = -1;
 				return;
